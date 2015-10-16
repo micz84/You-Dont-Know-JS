@@ -514,18 +514,13 @@ So, to address such a race condition, you can coordinate ordering interaction:
 ```js
 var res = [];
 
-function response(data) {
-	if (data.url == "http://some.url.1") {
-		res[0] = data;
-	}
-	else if (data.url == "http://some.url.2") {
-		res[1] = data;
-	}
+function response(index,data) {
+	res[index] = data;
 }
 
 // ajax(..) is some arbitrary Ajax function given by a library
-ajax( "http://some.url.1", response );
-ajax( "http://some.url.2", response );
+ajax( "http://some.url.1", response.bind(null,0) );
+ajax( "http://some.url.2", response.bind(null,1) );
 ```
 
 Regardless of which Ajax response comes back first, we inspect the `data.url` (assuming one is returned from the server, of course!) to figure out which position the response data should occupy in the `res` array. `res[0]` will always hold the `"http://some.url.1"` results and `res[1]` will always hold the `"http://some.url.2"` results. Through simple coordination, we eliminated the "race condition" nondeterminism.
